@@ -1,7 +1,7 @@
 Summary:	Realtime audio/video encoder and streaming server
 Name:		ffmpeg
 Version:	1.0
-Release:	2
+Release:	3
 License:	GPL v3
 Group:		Applications/Multimedia
 Source0:	http://ffmpeg.org/releases/%{name}-%{version}.tar.bz2
@@ -110,6 +110,9 @@ rm -rf $RPM_BUILD_ROOT
 # BR tetex doc/*.html
 %attr(755,root,root) %{_bindir}/ffmpeg
 %attr(755,root,root) %{_bindir}/ffprobe
+%dir %{_datadir}/%{name}
+%{_datadir}/%{name}/*.ffpreset
+%{_datadir}/%{name}/*.xsd
 %{_mandir}/man1/ffmpeg.1*
 %{_mandir}/man1/ffprobe.1*
 
@@ -134,10 +137,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/libpostproc.so.*.*.*
 %attr(755,root,root) %{_libdir}/libswresample.so.*.*.*
 %attr(755,root,root) %{_libdir}/libswscale.so.*.*.*
-
-%dir %{_datadir}/%{name}
-%{_datadir}/%{name}/*.ffpreset
-%{_datadir}/%{name}/*.xsd
 
 %files devel
 %defattr(644,root,root,755)
