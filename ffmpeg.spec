@@ -1,7 +1,7 @@
 Summary:	Realtime audio/video encoder and streaming server
 Name:		ffmpeg
 Version:	1.0
-Release:	3
+Release:	4
 License:	GPL v3
 Group:		Applications/Multimedia
 Source0:	http://ffmpeg.org/releases/%{name}-%{version}.tar.bz2
@@ -27,7 +27,7 @@ BuildRequires:	texinfo
 BuildRequires:	vo-aacenc-devel
 BuildRequires:	xvidcore-devel
 BuildRequires:	zlib-devel
-Requires:	%{name}-libs = %{version}-%{release}
+#Requires:	%{name}-libs = %{version}-%{release}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_noautoreqdep	libGL.so.1 libGLU.so.1
