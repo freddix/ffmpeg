@@ -1,7 +1,7 @@
 Summary:	Realtime audio/video encoder and streaming server
 Name:		ffmpeg
 Version:	1.0
-Release:	1
+Release:	2
 License:	GPL v3
 Group:		Applications/Multimedia
 Source0:	http://ffmpeg.org/releases/%{name}-%{version}.tar.bz2
@@ -71,7 +71,6 @@ ffmpeg header files.
 	--disable-debug			\
 	--disable-ffplay		\
 	--disable-ffserver		\
-	--disable-static		\
 	--disable-stripping		\
 	--enable-avfilter		\
 	--enable-gpl			\
@@ -88,7 +87,6 @@ ffmpeg header files.
 	--enable-postproc		\
 	--enable-pthreads		\
 	--enable-runtime-cpudetect	\
-	--enable-shared			\
 	--enable-vaapi			\
 	--enable-version3		\
 	--enable-x11grab
@@ -112,10 +110,10 @@ rm -rf $RPM_BUILD_ROOT
 # BR tetex doc/*.html
 %attr(755,root,root) %{_bindir}/ffmpeg
 %attr(755,root,root) %{_bindir}/ffprobe
-
 %{_mandir}/man1/ffmpeg.1*
 %{_mandir}/man1/ffprobe.1*
 
+%if 0
 %files libs
 %defattr(644,root,root,755)
 %attr(755,root,root) %ghost %{_libdir}/libavcodec.so.??
@@ -163,4 +161,5 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/libswresample
 %{_includedir}/libswscale
 %{_pkgconfigdir}/*.pc
+%endif
 
