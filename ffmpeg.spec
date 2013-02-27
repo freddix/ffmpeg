@@ -1,11 +1,11 @@
 Summary:	Realtime audio/video encoder and streaming server
 Name:		ffmpeg
-Version:	1.1.2
+Version:	1.1.3
 Release:	1
 License:	GPL v3
 Group:		Applications/Multimedia
 Source0:	http://ffmpeg.org/releases/%{name}-%{version}.tar.bz2
-# Source0-md5:	7434c0b38be2ce9c4344d067cc0067f5
+# Source0-md5:	f66eee18559ba59da63b895164a189c3
 URL:		http://ffmpeg.org/
 BuildRequires:	SDL-devel
 BuildRequires:	flac-devel
