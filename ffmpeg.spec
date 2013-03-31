@@ -1,7 +1,7 @@
 Summary:	Realtime audio/video encoder and streaming server
 Name:		ffmpeg
 Version:	1.2
-Release:	1
+Release:	2
 License:	GPL v3
 Group:		Applications/Multimedia
 Source0:	http://ffmpeg.org/releases/%{name}-%{version}.tar.bz2
