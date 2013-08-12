@@ -1,0 +1,188 @@
+From d02509d04d396a98646ca81e9ba327a501486130 Mon Sep 17 00:00:00 2001
+From: Jonathan Moore Liles <j.liles@unix.net>
+Date: Thu, 11 Jul 2013 14:30:53 -0700
+Subject: [PATCH] Fix sync issues with jack audio driver.
+
+---
+ libavdevice/jack_audio.c | 60 ++++++++++++++++++++++++------------------------
+ libavdevice/x11grab.c    |  3 ++-
+ 2 files changed, 32 insertions(+), 31 deletions(-)
+
+diff --git a/libavdevice/jack_audio.c b/libavdevice/jack_audio.c
+index bd6a770..c32ea37 100644
+--- a/libavdevice/jack_audio.c
++++ b/libavdevice/jack_audio.c
+@@ -31,13 +31,15 @@
+ #include "libavcodec/avcodec.h"
+ #include "libavformat/avformat.h"
+ #include "libavformat/internal.h"
+-#include "timefilter.h"
+ #include "avdevice.h"
+ 
+ /**
+  * Size of the internal FIFO buffers as a number of audio packets
+  */
+-#define FIFO_PACKETS_NUM 16
++/* don't be stingy with this! the x11grab driver blocks everything
++ * with usleep(), so this buffer doesn't get filled by the non-RT
++ * thread very consistently. */
++#define FIFO_PACKETS_NUM 2048
+ 
+ typedef struct {
+     AVClass        *class;
+@@ -46,9 +48,9 @@
+     sem_t           packet_count;
+     jack_nframes_t  sample_rate;
+     jack_nframes_t  buffer_size;
++    jack_nframes_t  capture_latency;
+     jack_port_t **  ports;
+     int             nports;
+-    TimeFilter *    timefilter;
+     AVFifoBuffer *  new_pkts;
+     AVFifoBuffer *  filled_pkts;
+     int             pkt_xrun;
+@@ -63,21 +65,16 @@ static int process_callback(jack_nframes_t nframes, void *arg)
+     int i, j;
+     JackData *self = arg;
+     float * buffer;
+-    jack_nframes_t latency, cycle_delay;
++    jack_nframes_t latency;
+     AVPacket pkt;
+     float *pkt_data;
+-    double cycle_time;
++    int64_t start;
+ 
+     if (!self->client)
+         return 0;
+ 
+-    /* The approximate delay since the hardware interrupt as a number of frames */
+-    cycle_delay = jack_frames_since_cycle_start(self->client);
+-
+-    /* Retrieve filtered cycle time */
+-    cycle_time = ff_timefilter_update(self->timefilter,
+-                                      av_gettime() / 1000000.0 - (double) cycle_delay / self->sample_rate,
+-                                      self->buffer_size);
++    /* the time this audio was captured in microseconds */
++    start = av_gettime() - ( jack_frames_since_cycle_start(self->client) / (double)self->sample_rate * 1000000.0);
+ 
+     /* Check if an empty packet is available, and if there's enough space to send it back once filled */
+     if ((av_fifo_size(self->new_pkts) < sizeof(pkt)) || (av_fifo_space(self->filled_pkts) < sizeof(pkt))) {
+@@ -89,24 +86,17 @@ static int process_callback(jack_nframes_t nframes, void *arg)
+     av_fifo_generic_read(self->new_pkts, &pkt, sizeof(pkt), NULL);
+ 
+     pkt_data  = (float *) pkt.data;
+-    latency   = 0;
++
++    latency = self->capture_latency;
+ 
+     /* Copy and interleave audio data from the JACK buffer into the packet */
+     for (i = 0; i < self->nports; i++) {
+-    #if HAVE_JACK_PORT_GET_LATENCY_RANGE
+-        jack_latency_range_t range;
+-        jack_port_get_latency_range(self->ports[i], JackCaptureLatency, &range);
+-        latency += range.max;
+-    #else
+-        latency += jack_port_get_total_latency(self->client, self->ports[i]);
+-    #endif
+-        buffer = jack_port_get_buffer(self->ports[i], self->buffer_size);
+-        for (j = 0; j < self->buffer_size; j++)
++        buffer = jack_port_get_buffer(self->ports[i], nframes );
++        for (j = 0; j < nframes && j < self->buffer_size; j++)
+             pkt_data[j * self->nports + i] = buffer[j];
+     }
+ 
+-    /* Timestamp the packet with the cycle start time minus the average latency */
+-    pkt.pts = (cycle_time - (double) latency / (self->nports * self->sample_rate)) * 1000000.0;
++    pkt.pts = start - ( latency / (double)self->sample_rate * 1000000.0 );
+ 
+     /* Send the now filled packet back, and increase packet counter */
+     av_fifo_generic_write(self->filled_pkts, &pkt, sizeof(pkt), NULL);
+@@ -125,7 +115,6 @@ static int xrun_callback(void *arg)
+ {
+     JackData *self = arg;
+     self->jack_xrun = 1;
+-    ff_timefilter_reset(self->timefilter);
+     return 0;
+ }
+ 
+@@ -152,6 +141,7 @@ static int start_jack(AVFormatContext *context)
+     JackData *self = context->priv_data;
+     jack_status_t status;
+     int i, test;
++    jack_port_t *input;
+ 
+     /* Register as a JACK client, using the context filename as client name. */
+     self->client = jack_client_open(context->filename, JackNullOption, &status);
+@@ -165,8 +155,21 @@ static int start_jack(AVFormatContext *context)
+     self->sample_rate = jack_get_sample_rate(self->client);
+     self->ports       = av_malloc(self->nports * sizeof(*self->ports));
+     self->buffer_size = jack_get_buffer_size(self->client);
++    
++    input = jack_port_by_name( self->client, "system:input_1" );
++
++    {
++#if HAVE_JACK_PORT_GET_LATENCY_RANGE
++    jack_latency_range_t range;
++    jack_port_get_latency_range(input, JackCaptureLatency, &range);
++    
++    self->capture_latency = range.max;
++#else
++    self->capture_latency = jack_port_get_total_latency(self->client,input );
++#endif
++    }
+ 
+-    /* Register JACK ports */
++        /* Register JACK ports */
+     for (i = 0; i < self->nports; i++) {
+         char str[16];
+         snprintf(str, sizeof(str), "input_%d", i + 1);
+@@ -186,9 +189,6 @@ static int start_jack(AVFormatContext *context)
+     jack_on_shutdown(self->client, shutdown_callback, self);
+     jack_set_xrun_callback(self->client, xrun_callback, self);
+ 
+-    /* Create time filter */
+-    self->timefilter  = ff_timefilter_new (1.0 / self->sample_rate, self->buffer_size, 1.5);
+-
+     /* Create FIFO buffers */
+     self->filled_pkts = av_fifo_alloc(FIFO_PACKETS_NUM * sizeof(AVPacket));
+     /* New packets FIFO with one extra packet for safety against underruns */
+@@ -223,7 +223,6 @@ static void stop_jack(JackData *self)
+     free_pkt_fifo(self->new_pkts);
+     free_pkt_fifo(self->filled_pkts);
+     av_freep(&self->ports);
+-    ff_timefilter_destroy(self->timefilter);
+ }
+ 
+ static int audio_read_header(AVFormatContext *context)
+@@ -267,6 +266,7 @@ static int audio_read_packet(AVFormatContext *context, AVPacket *pkt)
+     if (!self->activated) {
+         if (!jack_activate(self->client)) {
+             self->activated = 1;
++
+             av_log(context, AV_LOG_INFO,
+                    "JACK client registered and activated (rate=%dHz, buffer_size=%d frames)\n",
+                    self->sample_rate, self->buffer_size);
+diff --git a/libavdevice/x11grab.c b/libavdevice/x11grab.c
+index 7db1da6..7a1386b 100644
+--- a/libavdevice/x11grab.c
++++ b/libavdevice/x11grab.c
+@@ -493,7 +493,6 @@ struct x11grab {
+     av_init_packet(pkt);
+     pkt->data = image->data;
+     pkt->size = s->frame_size;
+-    pkt->pts = curtime;
+ 
+     screen = DefaultScreen(dpy);
+     root = RootWindow(dpy, screen);
+@@ -543,6 +542,8 @@ struct x11grab {
+         }
+     }
+ 
++    pkt->pts = av_gettime();
++
+     if(s->use_shm) {
+         if (!XShmGetImage(dpy, root, image, x_off, y_off, AllPlanes)) {
+             av_log (s1, AV_LOG_INFO, "XShmGetImage() failed\n");
+-- 
+1.8.1.6
+
