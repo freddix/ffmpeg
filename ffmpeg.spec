@@ -1,12 +1,11 @@
 Summary:	Realtime audio/video encoder and streaming server
 Name:		ffmpeg
-Version:	2.0.2
+Version:	2.1
 Release:	1
 License:	GPL v3
 Group:		Applications/Multimedia
 Source0:	http://ffmpeg.org/releases/%{name}-%{version}.tar.bz2
-# Source0-md5:	6c5cfed204d8a108325d1fc439ab734a
-Patch0:		%{name}-jack-sync.patch
+# Source0-md5:	4ec1cedd4c7753512462f70b347c338a
 URL:		http://ffmpeg.org/
 BuildRequires:	SDL-devel
 BuildRequires:	flac-devel
@@ -57,7 +56,6 @@ ffmpeg header files.
 
 %prep
 %setup -q
-%patch0 -p1
 
 %build
 # not autoconf configure
