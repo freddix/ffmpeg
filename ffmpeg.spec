@@ -1,11 +1,11 @@
 Summary:	Realtime audio/video encoder and streaming server
 Name:		ffmpeg
-Version:	2.1.4
+Version:	2.2
 Release:	1
 License:	GPL v3
 Group:		Applications/Multimedia
 Source0:	http://ffmpeg.org/releases/%{name}-%{version}.tar.bz2
-# Source0-md5:	dedc28003a77c69432c42ab16e5f6982
+# Source0-md5:	744febca199548c9393b1f1ed05ccdd8
 URL:		http://ffmpeg.org/
 BuildRequires:	SDL-devel
 BuildRequires:	flac-devel
@@ -138,7 +138,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %ghost %{_libdir}/libavcodec.so.55
 %attr(755,root,root) %ghost %{_libdir}/libavdevice.so.55
-%attr(755,root,root) %ghost %{_libdir}/libavfilter.so.3
+%attr(755,root,root) %ghost %{_libdir}/libavfilter.so.4
 %attr(755,root,root) %ghost %{_libdir}/libavformat.so.55
 %attr(755,root,root) %ghost %{_libdir}/libavresample.so.1
 %attr(755,root,root) %ghost %{_libdir}/libavutil.so.52
