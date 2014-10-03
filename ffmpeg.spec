@@ -1,17 +1,19 @@
 Summary:	Realtime audio/video encoder and streaming server
 Name:		ffmpeg
-Version:	2.2.2
+Version:	2.4.1
 Release:	1
 License:	GPL v3
 Group:		Applications/Multimedia
 Source0:	http://ffmpeg.org/releases/%{name}-%{version}.tar.bz2
-# Source0-md5:	581affe5d820d89ce21fe3f0316ef2c3
+# Source0-md5:	c36caa8d29b3677dcb7bd8c546890c9d
 URL:		http://ffmpeg.org/
 BuildRequires:	SDL-devel
 BuildRequires:	flac-devel
 BuildRequires:	freetype-devel
 BuildRequires:	jack-audio-connection-kit-devel
 BuildRequires:	lame-libs-devel
+BuildRequires:	libass-devel
+BuildRequires:	libbluray-devel
 BuildRequires:	libdc1394-devel
 BuildRequires:	libraw1394-devel
 BuildRequires:	libtheora-devel
@@ -123,7 +125,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc README doc/RELEASE_NOTES
+#%doc README doc/RELEASE_NOTES
 # BR tetex doc/*.html
 %attr(755,root,root) %{_bindir}/ffmpeg
 %attr(755,root,root) %{_bindir}/ffprobe
@@ -136,15 +138,15 @@ rm -rf $RPM_BUILD_ROOT
 
 %files libs
 %defattr(644,root,root,755)
-%attr(755,root,root) %ghost %{_libdir}/libavcodec.so.55
-%attr(755,root,root) %ghost %{_libdir}/libavdevice.so.55
-%attr(755,root,root) %ghost %{_libdir}/libavfilter.so.4
-%attr(755,root,root) %ghost %{_libdir}/libavformat.so.55
-%attr(755,root,root) %ghost %{_libdir}/libavresample.so.1
-%attr(755,root,root) %ghost %{_libdir}/libavutil.so.52
-%attr(755,root,root) %ghost %{_libdir}/libpostproc.so.52
-%attr(755,root,root) %ghost %{_libdir}/libswresample.so.0
-%attr(755,root,root) %ghost %{_libdir}/libswscale.so.2
+%attr(755,root,root) %ghost %{_libdir}/libavcodec.so.56
+%attr(755,root,root) %ghost %{_libdir}/libavdevice.so.56
+%attr(755,root,root) %ghost %{_libdir}/libavfilter.so.5
+%attr(755,root,root) %ghost %{_libdir}/libavformat.so.56
+%attr(755,root,root) %ghost %{_libdir}/libavresample.so.2
+%attr(755,root,root) %ghost %{_libdir}/libavutil.so.54
+%attr(755,root,root) %ghost %{_libdir}/libpostproc.so.53
+%attr(755,root,root) %ghost %{_libdir}/libswresample.so.1
+%attr(755,root,root) %ghost %{_libdir}/libswscale.so.3
 %attr(755,root,root) %{_libdir}/libavcodec.so.*.*.*
 %attr(755,root,root) %{_libdir}/libavdevice.so.*.*.*
 %attr(755,root,root) %{_libdir}/libavfilter.so.*.*.*
