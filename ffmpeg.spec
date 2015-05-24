@@ -1,11 +1,11 @@
 Summary:	Realtime audio/video encoder and streaming server
 Name:		ffmpeg
-Version:	2.6.2
+Version:	2.6.3
 Release:	1
 License:	GPL v3
 Group:		Applications/Multimedia
 Source0:	http://ffmpeg.org/releases/%{name}-%{version}.tar.bz2
-# Source0-md5:	e75d598921285d6775f20164a91936ac
+# Source0-md5:	e2cc3c209f91393d35ab58598e41cf22
 URL:		http://ffmpeg.org/
 BuildRequires:	SDL-devel
 BuildRequires:	flac-devel
